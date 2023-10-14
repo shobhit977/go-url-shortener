@@ -38,6 +38,7 @@ func shortenUrl(svc service, req events.APIGatewayV2HTTPRequest) (UrlInfo, error
 	var request Request
 	err := json.Unmarshal([]byte(req.Body), &request)
 	if err != nil {
+		log.Printf("%v", err)
 		return UrlInfo{}, err
 	}
 	// check if file already exists in s3 bucket
@@ -102,6 +103,7 @@ func isUrlExist(svc service, urlDetails []UrlInfo, url string) (UrlInfo, bool) {
 func generateUrlFileOutput(urlDetails []UrlInfo, url string) ([]byte, UrlInfo, error) {
 	domain, err := getDomain(url)
 	if err != nil {
+		log.Printf("%v", err)
 		return nil, UrlInfo{}, errors.New("invalid URL. Please specify a valid URL")
 	}
 	shortUrl := generateShortUrl(url)
@@ -119,10 +121,12 @@ func generateUrlFileOutput(urlDetails []UrlInfo, url string) ([]byte, UrlInfo, e
 func getExistingFileInfo(svc service, url string) (UrlInfo, error) {
 	existingInfo, err := s3service.GetS3Object(svc.s3Client, constants.Bucket, constants.Key)
 	if err != nil {
+		log.Printf("%v", err)
 		return UrlInfo{}, err
 	}
 	var urlDetails []UrlInfo
 	if err := json.Unmarshal(existingInfo, &urlDetails); err != nil {
+		log.Printf("%v", err)
 		return UrlInfo{}, err
 	}
 	// if short url already shortened then return short url instead of generating again
@@ -132,10 +136,12 @@ func getExistingFileInfo(svc service, url string) (UrlInfo, error) {
 	} else {
 		allUrlInfoBytes, urlInformation, err := generateUrlFileOutput(urlDetails, url)
 		if err != nil {
+			log.Printf("%v", err)
 			return UrlInfo{}, err
 		}
 		err = s3service.PutS3Object(svc.s3Client, allUrlInfoBytes, constants.Bucket, constants.Key)
 		if err != nil {
+			log.Printf("%v", err)
 			return UrlInfo{}, err
 		}
 		return urlInformation, nil

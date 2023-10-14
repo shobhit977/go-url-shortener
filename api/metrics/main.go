@@ -6,6 +6,7 @@ import (
 	"errors"
 	"go-url-shortener/lib/constants"
 	s3service "go-url-shortener/lib/s3-service"
+	"log"
 	"sort"
 	"strconv"
 
@@ -29,6 +30,7 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (mostShortenedUrls []Response, err error) {
 	isFileExist, err := s3service.KeyExists(constants.Bucket, constants.Key, svc.s3Client)
 	if err != nil {
+		log.Printf("Failed to check file existence: %v", err)
 		return nil, err
 	}
 
@@ -40,12 +42,14 @@ func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (mostShorte
 		}
 		var urlDetails []UrlInfo
 		if err := json.Unmarshal(existingInfo, &urlDetails); err != nil {
+			log.Printf("Failed to unmarshal:%v", err)
 			return nil, err
 		}
 		// check if query param is specified . If not then use default value for limit
 		if limitParam, ok := req.QueryStringParameters["limit"]; ok {
 			limit, err := strconv.ParseInt(limitParam, 10, 32)
 			if err != nil {
+				log.Printf("%v", err)
 				return nil, errors.New("specify a valid integer value")
 			}
 			mostShortenedUrls = getMostShortenedUrls(urlDetails, int(limit))
@@ -60,7 +64,7 @@ func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (mostShorte
 }
 
 // function to get n most shortened url
-func getMostShortenedUrls(urlDetails []UrlInfo, limit int) []Response {
+func getMostShortenedUrls(urlDetails []UrlInfo, limit int) (mostShortenedUrls []Response) {
 	metricMap := make(map[string]int)
 	// create a map of domain and its frequency
 	for _, v := range urlDetails {
@@ -73,16 +77,15 @@ func getMostShortenedUrls(urlDetails []UrlInfo, limit int) []Response {
 	// sort the map in descending order of frequency of domain
 	sort.Slice(keys, func(i, j int) bool { return metricMap[keys[i]] > metricMap[keys[j]] })
 	count := 0
-	top3Urls := []Response{}
 	for _, key := range keys {
 		if count >= limit {
 			break
 		}
-		top3Urls = append(top3Urls, Response{Domain: key, Count: metricMap[key]})
+		mostShortenedUrls = append(mostShortenedUrls, Response{Domain: key, Count: metricMap[key]})
 		count++
 	}
 
-	return top3Urls
+	return mostShortenedUrls
 }
 func main() {
 	lambda.Start(handler)

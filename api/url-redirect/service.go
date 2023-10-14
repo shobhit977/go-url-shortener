@@ -40,7 +40,7 @@ func NewService() (service, error) {
 func ErrorResponse(err error) events.APIGatewayV2HTTPResponse {
 	errRes := errorlib.ErrorLib{
 		Message: err.Error(),
-		Code:    400,
+		Code:    http.StatusBadRequest,
 	}
 	respBytes, _ := json.Marshal(errRes)
 	return events.APIGatewayV2HTTPResponse{

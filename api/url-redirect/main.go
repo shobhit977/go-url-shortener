@@ -5,6 +5,7 @@ import (
 	"errors"
 	"go-url-shortener/lib/constants"
 	s3service "go-url-shortener/lib/s3-service"
+	"log"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -41,6 +42,7 @@ func redirect(svc service, req events.APIGatewayV2HTTPRequest) (string, error) {
 	// if file exists in s3 bucket
 	isFileExist, err := s3service.KeyExists(constants.Bucket, constants.Key, svc.s3Client)
 	if err != nil {
+		log.Printf("%v", err)
 		return "", err
 	}
 	// if file exists then check if  shortUrl also exists
@@ -51,6 +53,7 @@ func redirect(svc service, req events.APIGatewayV2HTTPRequest) (string, error) {
 		}
 		var urlDetails []UrlInfo
 		if err := json.Unmarshal(existingInfo, &urlDetails); err != nil {
+			log.Printf("%v", err)
 			return "", err
 		}
 		//if short url exist then return it otherwise return error

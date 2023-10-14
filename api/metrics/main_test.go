@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_getTopthreeUrls(t *testing.T) {
+func Test_getMostShortenedUrl(t *testing.T) {
 	type input struct {
 		urlDetails []UrlInfo
 		limit      int

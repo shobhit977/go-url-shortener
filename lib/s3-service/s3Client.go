@@ -3,6 +3,7 @@ package s3service
 import (
 	"bytes"
 	"io"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -17,6 +18,7 @@ func PutS3Object(s3Client *s3.S3, byteData []byte, bucket string, key string) er
 	}
 	_, err := s3Client.PutObject(params)
 	if err != nil {
+		log.Printf("%v", err)
 		return err
 	}
 	return nil
@@ -29,6 +31,7 @@ func GetS3Object(s3Client *s3.S3, bucket string, key string) ([]byte, error) {
 	}
 	result, err := s3Client.GetObject(params)
 	if err != nil {
+		log.Printf("%v", err)
 		return nil, err
 	}
 	defer result.Body.Close()
@@ -36,6 +39,7 @@ func GetS3Object(s3Client *s3.S3, bucket string, key string) ([]byte, error) {
 	// capture all bytes from upload
 	byteData, err := io.ReadAll(result.Body)
 	if err != nil {
+		log.Printf("%v", err)
 		return nil, err
 	}
 
