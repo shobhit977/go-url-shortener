@@ -5,6 +5,7 @@ import (
 	"errors"
 	"go-url-shortener/lib/constants"
 	s3service "go-url-shortener/lib/s3-service"
+	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -15,7 +16,7 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPRespons
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{
 			Body:       err.Error(),
-			StatusCode: 500,
+			StatusCode: http.StatusInternalServerError,
 		}, nil
 	}
 	redirectUrl, err := redirect(svc, req)
@@ -24,7 +25,7 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPRespons
 	}
 	// redirect the short url to original url
 	return events.APIGatewayV2HTTPResponse{
-		StatusCode: 302,
+		StatusCode: http.StatusTemporaryRedirect,
 		Headers: map[string]string{
 			"Location": redirectUrl,
 		},

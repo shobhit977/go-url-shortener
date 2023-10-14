@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"go-url-shortener/lib/constants"
 	errorlib "go-url-shortener/lib/errorLib"
+	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
@@ -44,6 +45,6 @@ func ErrorResponse(err error) events.APIGatewayV2HTTPResponse {
 	respBytes, _ := json.Marshal(errRes)
 	return events.APIGatewayV2HTTPResponse{
 		Body:       string(respBytes),
-		StatusCode: 400,
+		StatusCode: http.StatusBadRequest,
 	}
 }
