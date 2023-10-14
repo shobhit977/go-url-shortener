@@ -1,6 +1,10 @@
 package main
 
 import (
+	"encoding/json"
+	errorlib "go-url-shortener/lib/errorLib"
+
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -9,12 +13,8 @@ import (
 type Request struct {
 	Url string `json:"url"`
 }
-type Response struct {
-	Status  int    `json:"statusCode"`
-	Message string `json:"message"`
-}
 
-type UrlInfo []struct {
+type UrlInfo struct {
 	Url      string `json:"url"`
 	ShortUrl string `json:"shorturl"`
 	Domain   string `json:"domain"`
@@ -36,4 +36,24 @@ func NewService() (service, error) {
 		sess:     sess,
 		s3Client: s3Client,
 	}, nil
+}
+
+func SuccessResponse(resp UrlInfo) events.APIGatewayV2HTTPResponse {
+	respBytes, _ := json.Marshal(resp)
+	return events.APIGatewayV2HTTPResponse{
+		Body:       string(respBytes),
+		StatusCode: 200,
+	}
+}
+
+func ErrorResponse(err error) events.APIGatewayV2HTTPResponse {
+	errRes := errorlib.ErrorLib{
+		Error: err,
+		Code:  400,
+	}
+	respBytes, _ := json.Marshal(errRes)
+	return events.APIGatewayV2HTTPResponse{
+		Body:       string(respBytes),
+		StatusCode: 400,
+	}
 }
