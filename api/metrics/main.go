@@ -26,7 +26,7 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 	}
 	return SuccessResponse(response), nil
 }
-func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (top3Urls []Response, err error) {
+func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (mostShortenedUrls []Response, err error) {
 	isFileExist, err := s3service.KeyExists(constants.Bucket, constants.Key, svc.s3Client)
 	if err != nil {
 		return nil, err
@@ -48,19 +48,19 @@ func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (top3Urls [
 			if err != nil {
 				return nil, errors.New("specify a valid integer value")
 			}
-			top3Urls = getTopthreeUrls(urlDetails, int(limit))
+			mostShortenedUrls = getMostShortenedUrls(urlDetails, int(limit))
 		} else {
-			top3Urls = getTopthreeUrls(urlDetails, 3)
+			mostShortenedUrls = getMostShortenedUrls(urlDetails, 3)
 		}
 
-		return top3Urls, nil
+		return mostShortenedUrls, nil
 	} else {
 		return nil, errors.New("metrics data does not exist")
 	}
 }
 
 // function to get n most shortened url
-func getTopthreeUrls(urlDetails []UrlInfo, limit int) []Response {
+func getMostShortenedUrls(urlDetails []UrlInfo, limit int) []Response {
 	metricMap := make(map[string]int)
 	// create a map of domain and its frequency
 	for _, v := range urlDetails {

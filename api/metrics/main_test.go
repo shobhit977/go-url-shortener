@@ -98,7 +98,7 @@ func Test_getTopthreeUrls(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		resp := getTopthreeUrls(tt.input.urlDetails, tt.input.limit)
+		resp := getMostShortenedUrls(tt.input.urlDetails, tt.input.limit)
 		assert.Equal(t, resp, tt.resp)
 	}
 }
