@@ -130,11 +130,11 @@ func getExistingFileInfo(svc service, url string) (UrlInfo, error) {
 	if ok {
 		return shortUrl, nil
 	} else {
-		allInfoBytes, urlInformation, err := generateUrlFileOutput(urlDetails, url)
+		allUrlInfoBytes, urlInformation, err := generateUrlFileOutput(urlDetails, url)
 		if err != nil {
 			return UrlInfo{}, err
 		}
-		err = s3service.PutS3Object(svc.s3Client, allInfoBytes, constants.Bucket, constants.Key)
+		err = s3service.PutS3Object(svc.s3Client, allUrlInfoBytes, constants.Bucket, constants.Key)
 		if err != nil {
 			return UrlInfo{}, err
 		}
