@@ -1,6 +1,6 @@
 package errorlib
 
 type ErrorLib struct {
-	Error error
-	Code  int
+	Message string
+	Code    int
 }

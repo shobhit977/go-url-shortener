@@ -3,10 +3,8 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"go-url-shortener/lib/constants"
 	s3service "go-url-shortener/lib/s3-service"
-	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -16,7 +14,8 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPRespons
 	svc, err := NewService()
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{
-			Body: err.Error(),
+			Body:       err.Error(),
+			StatusCode: 500,
 		}, nil
 	}
 	redirectUrl, err := redirect(svc, req)
@@ -33,8 +32,10 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPRespons
 }
 
 func redirect(svc service, req events.APIGatewayV2HTTPRequest) (string, error) {
-	shortUrl := strings.Split(req.RawPath, "/redirect")[1]
-	fmt.Println(shortUrl)
+	shortUrl, ok := req.PathParameters["shortUrl"]
+	if !ok {
+		return "", errors.New("shortURL is empty. Please provide valid shortURL")
+	}
 	isFileExist, err := s3service.KeyExists(constants.Bucket, constants.Key, svc.s3Client)
 	if err != nil {
 		return "", err

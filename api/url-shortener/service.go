@@ -48,8 +48,8 @@ func SuccessResponse(resp UrlInfo) events.APIGatewayV2HTTPResponse {
 
 func ErrorResponse(err error) events.APIGatewayV2HTTPResponse {
 	errRes := errorlib.ErrorLib{
-		Error: err,
-		Code:  400,
+		Message: err.Error(),
+		Code:    400,
 	}
 	respBytes, _ := json.Marshal(errRes)
 	return events.APIGatewayV2HTTPResponse{
