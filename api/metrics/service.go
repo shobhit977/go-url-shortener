@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"go-url-shortener/lib/constants"
 	errorlib "go-url-shortener/lib/errorLib"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -26,7 +27,7 @@ type Response struct {
 
 func NewService() (service, error) {
 	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String("ap-south-1")},
+		Region: aws.String(constants.Region)},
 	)
 	if err != nil {
 		return service{}, err
