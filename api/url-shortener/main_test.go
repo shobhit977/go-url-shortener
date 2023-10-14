@@ -94,7 +94,7 @@ func Test_generateUrlFileOutput_Success_ExistingUrlDataPresent(t *testing.T) {
 		Domain:   "fb",
 	}}
 	url := "https://www.google.com"
-	allInfoBytes, urlInfo, err := generateUrlFileOutput(testUrlData, url)
+	allUrlInfoBytes, urlInfo, err := generateUrlFileOutput(testUrlData, url)
 	assert.Nil(t, err)
 	assert.Equal(t, urlInfo, UrlInfo{
 		Url:      "https://www.google.com",
@@ -103,7 +103,7 @@ func Test_generateUrlFileOutput_Success_ExistingUrlDataPresent(t *testing.T) {
 	},
 	)
 	var allUrlData []UrlInfo
-	json.Unmarshal(allInfoBytes, &allUrlData)
+	json.Unmarshal(allUrlInfoBytes, &allUrlData)
 	assert.Equal(t, allUrlData, []UrlInfo{{
 		Url:      "www.fb.com",
 		ShortUrl: "Vb1V-0nHFy",
