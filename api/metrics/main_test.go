@@ -94,7 +94,7 @@ func Test_getMostShortenedUrl(t *testing.T) {
 				urlDetails: []UrlInfo{},
 				limit:      2,
 			},
-			resp: []Response{},
+			resp: []Response(nil),
 		},
 	}
 	for _, tt := range tests {
