@@ -31,6 +31,7 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 }
 
 func shortenUrl(svc service, req events.APIGatewayV2HTTPRequest) (UrlInfo, error) {
+	//return error if url is empty
 	if req.Body == "" {
 		return UrlInfo{}, errors.New("URL cannot be empty. Please provide a valid URL")
 	}
@@ -39,6 +40,7 @@ func shortenUrl(svc service, req events.APIGatewayV2HTTPRequest) (UrlInfo, error
 	if err != nil {
 		return UrlInfo{}, err
 	}
+	// check if file already exists in s3 bucket
 	isFileExist, err := s3service.KeyExists(constants.Bucket, constants.Key, svc.s3Client)
 	if err != nil {
 		return UrlInfo{}, err
@@ -51,6 +53,7 @@ func shortenUrl(svc service, req events.APIGatewayV2HTTPRequest) (UrlInfo, error
 	if err != nil {
 		return UrlInfo{}, err
 	}
+	// add the file to s3 bucket
 	err = s3service.PutS3Object(svc.s3Client, urlInfoBytes, constants.Bucket, constants.Key)
 	if err != nil {
 		return UrlInfo{}, err
@@ -58,6 +61,13 @@ func shortenUrl(svc service, req events.APIGatewayV2HTTPRequest) (UrlInfo, error
 	return urlInformation, nil
 
 }
+
+/*
+function to get the domain of the URL
+
+Example - URL : www.google.com
+Domain : google
+*/
 func getDomain(inputUrl string) (string, error) {
 	parsedUrl, err := url.Parse(inputUrl)
 	if err != nil {
@@ -77,8 +87,9 @@ func generateShortUrl(url string) string {
 	//retrun first 10 characters
 	return sha1_hash[:10]
 }
-func isUrlExist(svc service, urlDetails []UrlInfo, url string) (UrlInfo, bool) {
 
+// check if the is url already shortened
+func isUrlExist(svc service, urlDetails []UrlInfo, url string) (UrlInfo, bool) {
 	for _, val := range urlDetails {
 		if val.Url == url {
 			return val, true
@@ -87,6 +98,7 @@ func isUrlExist(svc service, urlDetails []UrlInfo, url string) (UrlInfo, bool) {
 	return UrlInfo{}, false
 }
 
+// generate short url and append to existing file
 func generateUrlFileOutput(urlDetails []UrlInfo, url string) ([]byte, UrlInfo, error) {
 	domain, err := getDomain(url)
 	if err != nil {
@@ -94,7 +106,6 @@ func generateUrlFileOutput(urlDetails []UrlInfo, url string) ([]byte, UrlInfo, e
 	}
 	shortUrl := generateShortUrl(url)
 	urlInformation := UrlInfo{
-
 		Url:      url,
 		ShortUrl: shortUrl,
 		Domain:   domain,
@@ -104,6 +115,7 @@ func generateUrlFileOutput(urlDetails []UrlInfo, url string) ([]byte, UrlInfo, e
 	return allUrlInfoBytes, urlInformation, nil
 }
 
+// get existing url details from s3 bucket
 func getExistingFileInfo(svc service, url string) (UrlInfo, error) {
 	existingInfo, err := s3service.GetS3Object(svc.s3Client, constants.Bucket, constants.Key)
 	if err != nil {
@@ -113,6 +125,7 @@ func getExistingFileInfo(svc service, url string) (UrlInfo, error) {
 	if err := json.Unmarshal(existingInfo, &urlDetails); err != nil {
 		return UrlInfo{}, err
 	}
+	// if short url already shortened then return short url instead of generating again
 	shortUrl, ok := isUrlExist(svc, urlDetails, url)
 	if ok {
 		return shortUrl, nil

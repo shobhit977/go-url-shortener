@@ -33,6 +33,7 @@ func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (top3Urls [
 	}
 
 	if isFileExist {
+		//get file from s3 bucket
 		existingInfo, err := s3service.GetS3Object(svc.s3Client, constants.Bucket, constants.Key)
 		if err != nil {
 			return nil, err
@@ -41,6 +42,7 @@ func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (top3Urls [
 		if err := json.Unmarshal(existingInfo, &urlDetails); err != nil {
 			return nil, err
 		}
+		// check if query param is specified . If not then use default value for limit
 		if limitParam, ok := req.QueryStringParameters["limit"]; ok {
 			limit, err := strconv.ParseInt(limitParam, 10, 32)
 			if err != nil {
@@ -57,8 +59,10 @@ func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (top3Urls [
 	}
 }
 
+// function to get n most shortened url
 func getTopthreeUrls(urlDetails []UrlInfo, limit int) []Response {
 	metricMap := make(map[string]int)
+	// create a map of domain and its frequency
 	for _, v := range urlDetails {
 		metricMap[v.Domain] = metricMap[v.Domain] + 1
 	}
@@ -66,6 +70,7 @@ func getTopthreeUrls(urlDetails []UrlInfo, limit int) []Response {
 	for key := range metricMap {
 		keys = append(keys, key)
 	}
+	// sort the map in descending order of frequency of domain
 	sort.Slice(keys, func(i, j int) bool { return metricMap[keys[i]] > metricMap[keys[j]] })
 	count := 0
 	top3Urls := []Response{}
