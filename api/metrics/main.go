@@ -44,7 +44,7 @@ func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (top3Urls [
 		if limitParam, ok := req.QueryStringParameters["limit"]; ok {
 			limit, err := strconv.ParseInt(limitParam, 10, 32)
 			if err != nil {
-				return nil, errors.New("Specify a valid integer value")
+				return nil, errors.New("specify a valid integer value")
 			}
 			top3Urls = getTopthreeUrls(urlDetails, int(limit))
 		} else {
@@ -53,7 +53,7 @@ func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (top3Urls [
 
 		return top3Urls, nil
 	} else {
-		return nil, errors.New("Metrics data does not exist")
+		return nil, errors.New("metrics data does not exist")
 	}
 }
 

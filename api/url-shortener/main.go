@@ -58,10 +58,10 @@ func shortenUrl(svc service, req events.APIGatewayV2HTTPRequest) (UrlInfo, error
 	return urlInformation, nil
 
 }
-func parseUrl(inputUrl string) (string, error) {
+func getDomain(inputUrl string) (string, error) {
 	parsedUrl, err := url.Parse(inputUrl)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		return "", err
 	}
 	replacer := strings.NewReplacer("www.", "", ".com", "")
@@ -77,20 +77,20 @@ func generateShortUrl(url string) string {
 	//retrun first 10 characters
 	return sha1_hash[:10]
 }
-func isUrlExist(svc service, urlDetails []UrlInfo, url string) (UrlInfo, bool, error) {
+func isUrlExist(svc service, urlDetails []UrlInfo, url string) (UrlInfo, bool) {
 
 	for _, val := range urlDetails {
 		if val.Url == url {
-			return val, true, nil
+			return val, true
 		}
 	}
-	return UrlInfo{}, false, nil
+	return UrlInfo{}, false
 }
 
 func generateUrlFileOutput(urlDetails []UrlInfo, url string) ([]byte, UrlInfo, error) {
-	domain, err := parseUrl(url)
+	domain, err := getDomain(url)
 	if err != nil {
-		return nil, UrlInfo{}, errors.New("invalid URL")
+		return nil, UrlInfo{}, errors.New("invalid URL. Please specify a valid URL")
 	}
 	shortUrl := generateShortUrl(url)
 	urlInformation := UrlInfo{
@@ -100,8 +100,8 @@ func generateUrlFileOutput(urlDetails []UrlInfo, url string) ([]byte, UrlInfo, e
 		Domain:   domain,
 	}
 	urlDetails = append(urlDetails, urlInformation)
-	allInfoBytes, _ := json.Marshal(urlDetails)
-	return allInfoBytes, urlInformation, nil
+	allUrlInfoBytes, _ := json.Marshal(urlDetails)
+	return allUrlInfoBytes, urlInformation, nil
 }
 
 func getExistingFileInfo(svc service, url string) (UrlInfo, error) {
@@ -113,10 +113,7 @@ func getExistingFileInfo(svc service, url string) (UrlInfo, error) {
 	if err := json.Unmarshal(existingInfo, &urlDetails); err != nil {
 		return UrlInfo{}, err
 	}
-	shortUrl, ok, err := isUrlExist(svc, urlDetails, url)
-	if err != nil {
-		return UrlInfo{}, err
-	}
+	shortUrl, ok := isUrlExist(svc, urlDetails, url)
 	if ok {
 		return shortUrl, nil
 	} else {
