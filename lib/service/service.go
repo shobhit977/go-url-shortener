@@ -1,9 +1,10 @@
-package main
+package service
 
 import (
 	"encoding/json"
 	"go-url-shortener/lib/constants"
 	errorlib "go-url-shortener/lib/errorLib"
+	"go-url-shortener/lib/models"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -12,35 +13,33 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-type Request struct {
-	Url string `json:"url"`
+type Service struct {
+	Sess     *session.Session
+	S3Client *s3.S3
 }
 
-type UrlInfo struct {
-	Url      string `json:"url"`
-	ShortUrl string `json:"shorturl"`
-	Domain   string `json:"domain"`
-}
-type service struct {
-	sess     *session.Session
-	s3Client *s3.S3
-}
-
-func NewService() (service, error) {
+func NewService() (Service, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(constants.Region)},
 	)
 	if err != nil {
-		return service{}, err
+		return Service{}, err
 	}
 	s3Client := s3.New(sess)
-	return service{
-		sess:     sess,
-		s3Client: s3Client,
+	return Service{
+		Sess:     sess,
+		S3Client: s3Client,
 	}, nil
 }
+func UrlShortenerSuccessResponse(resp models.UrlInfo) events.APIGatewayV2HTTPResponse {
+	respBytes, _ := json.Marshal(resp)
+	return events.APIGatewayV2HTTPResponse{
+		Body:       string(respBytes),
+		StatusCode: http.StatusOK,
+	}
+}
 
-func SuccessResponse(resp UrlInfo) events.APIGatewayV2HTTPResponse {
+func MetricsSuccessResponse(resp []models.MetricsResponse) events.APIGatewayV2HTTPResponse {
 	respBytes, _ := json.Marshal(resp)
 	return events.APIGatewayV2HTTPResponse{
 		Body:       string(respBytes),

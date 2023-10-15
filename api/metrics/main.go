@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"go-url-shortener/lib/constants"
+	"go-url-shortener/lib/models"
 	s3service "go-url-shortener/lib/s3-service"
+	"go-url-shortener/lib/service"
 	"log"
 	"sort"
 	"strconv"
@@ -15,7 +17,7 @@ import (
 )
 
 func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	svc, err := NewService()
+	svc, err := service.NewService()
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{
 			Body: err.Error(),
@@ -23,12 +25,12 @@ func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 	}
 	response, err := getMetricsData(svc, req)
 	if err != nil {
-		return ErrorResponse(err), nil
+		return service.ErrorResponse(err), nil
 	}
-	return SuccessResponse(response), nil
+	return service.MetricsSuccessResponse(response), nil
 }
-func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (mostShortenedUrls []Response, err error) {
-	isFileExist, err := s3service.KeyExists(constants.Bucket, constants.Key, svc.s3Client)
+func getMetricsData(svc service.Service, req events.APIGatewayV2HTTPRequest) (mostShortenedUrls []models.MetricsResponse, err error) {
+	isFileExist, err := s3service.KeyExists(constants.Bucket, constants.Key, svc.S3Client)
 	if err != nil {
 		log.Printf("Failed to check file existence: %v", err)
 		return nil, err
@@ -36,11 +38,11 @@ func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (mostShorte
 
 	if isFileExist {
 		//get file from s3 bucket
-		existingInfo, err := s3service.GetS3Object(svc.s3Client, constants.Bucket, constants.Key)
+		existingInfo, err := s3service.GetS3Object(svc.S3Client, constants.Bucket, constants.Key)
 		if err != nil {
 			return nil, err
 		}
-		var urlDetails []UrlInfo
+		var urlDetails []models.UrlInfo
 		if err := json.Unmarshal(existingInfo, &urlDetails); err != nil {
 			log.Printf("Failed to unmarshal:%v", err)
 			return nil, err
@@ -64,7 +66,7 @@ func getMetricsData(svc service, req events.APIGatewayV2HTTPRequest) (mostShorte
 }
 
 // function to get n most shortened url
-func getMostShortenedUrls(urlDetails []UrlInfo, limit int) (mostShortenedUrls []Response) {
+func getMostShortenedUrls(urlDetails []models.UrlInfo, limit int) (mostShortenedUrls []models.MetricsResponse) {
 	metricMap := make(map[string]int)
 	// create a map of domain and its frequency
 	for _, v := range urlDetails {
@@ -81,7 +83,7 @@ func getMostShortenedUrls(urlDetails []UrlInfo, limit int) (mostShortenedUrls []
 		if count >= limit {
 			break
 		}
-		mostShortenedUrls = append(mostShortenedUrls, Response{Domain: key, Count: metricMap[key]})
+		mostShortenedUrls = append(mostShortenedUrls, models.MetricsResponse{Domain: key, Count: metricMap[key]})
 		count++
 	}
 

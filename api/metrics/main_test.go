@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-url-shortener/lib/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,18 +9,18 @@ import (
 
 func Test_getMostShortenedUrl(t *testing.T) {
 	type input struct {
-		urlDetails []UrlInfo
+		urlDetails []models.UrlInfo
 		limit      int
 	}
 	tests := []struct {
 		name  string
 		input input
-		resp  []Response
+		resp  []models.MetricsResponse
 	}{
 		{
 			name: "success case - limit 3",
 			input: input{
-				urlDetails: []UrlInfo{
+				urlDetails: []models.UrlInfo{
 					{Url: "www.google.com", ShortUrl: "xyz3", Domain: "google"},
 					{Url: "www.reddit.com", ShortUrl: "xyz", Domain: "reddit"},
 					{Url: "www.google.com/abc", ShortUrl: "xyza", Domain: "google"},
@@ -29,7 +30,7 @@ func Test_getMostShortenedUrl(t *testing.T) {
 				},
 				limit: 3,
 			},
-			resp: []Response{
+			resp: []models.MetricsResponse{
 				{
 					Domain: "google",
 					Count:  3,
@@ -47,7 +48,7 @@ func Test_getMostShortenedUrl(t *testing.T) {
 		{
 			name: "success case - limit 2",
 			input: input{
-				urlDetails: []UrlInfo{
+				urlDetails: []models.UrlInfo{
 					{Url: "www.google.com", ShortUrl: "xyz3", Domain: "google"},
 					{Url: "www.reddit.com", ShortUrl: "xyz", Domain: "reddit"},
 					{Url: "www.google.com/abc", ShortUrl: "xyza", Domain: "google"},
@@ -57,7 +58,7 @@ func Test_getMostShortenedUrl(t *testing.T) {
 				},
 				limit: 2,
 			},
-			resp: []Response{
+			resp: []models.MetricsResponse{
 				{
 					Domain: "google",
 					Count:  3,
@@ -71,7 +72,7 @@ func Test_getMostShortenedUrl(t *testing.T) {
 		{
 			name: "success case - limit 2",
 			input: input{
-				urlDetails: []UrlInfo{
+				urlDetails: []models.UrlInfo{
 					{Url: "www.google.com", ShortUrl: "xyz3", Domain: "google"},
 					{Url: "www.reddit.com", ShortUrl: "xyz", Domain: "reddit"},
 					{Url: "www.google.com/abc", ShortUrl: "xyza", Domain: "google"},
@@ -81,7 +82,7 @@ func Test_getMostShortenedUrl(t *testing.T) {
 				},
 				limit: 1,
 			},
-			resp: []Response{
+			resp: []models.MetricsResponse{
 				{
 					Domain: "google",
 					Count:  3,
@@ -91,10 +92,10 @@ func Test_getMostShortenedUrl(t *testing.T) {
 		{
 			name: "failure case - empty url data",
 			input: input{
-				urlDetails: []UrlInfo{},
+				urlDetails: []models.UrlInfo{},
 				limit:      2,
 			},
-			resp: []Response(nil),
+			resp: []models.MetricsResponse(nil),
 		},
 	}
 	for _, tt := range tests {

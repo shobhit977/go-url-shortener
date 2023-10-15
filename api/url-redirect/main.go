@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"go-url-shortener/lib/constants"
+	"go-url-shortener/lib/models"
 	s3service "go-url-shortener/lib/s3-service"
+	"go-url-shortener/lib/service"
 	"log"
 	"net/http"
 
@@ -13,7 +15,7 @@ import (
 )
 
 func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	svc, err := NewService()
+	svc, err := service.NewService()
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{
 			Body:       err.Error(),
@@ -22,7 +24,7 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPRespons
 	}
 	redirectUrl, err := redirect(svc, req)
 	if err != nil {
-		return ErrorResponse(err), nil
+		return service.ErrorResponse(err), nil
 	}
 	// redirect the short url to original url
 	return events.APIGatewayV2HTTPResponse{
@@ -34,24 +36,24 @@ func handler(req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPRespons
 	}, nil
 }
 
-func redirect(svc service, req events.APIGatewayV2HTTPRequest) (string, error) {
+func redirect(svc service.Service, req events.APIGatewayV2HTTPRequest) (string, error) {
 	shortUrl, ok := req.PathParameters["shortUrl"]
 	if !ok {
 		return "", errors.New("shortURL is empty. Please provide valid shortURL")
 	}
 	// if file exists in s3 bucket
-	isFileExist, err := s3service.KeyExists(constants.Bucket, constants.Key, svc.s3Client)
+	isFileExist, err := s3service.KeyExists(constants.Bucket, constants.Key, svc.S3Client)
 	if err != nil {
 		log.Printf("%v", err)
 		return "", err
 	}
 	// if file exists then check if  shortUrl also exists
 	if isFileExist {
-		existingInfo, err := s3service.GetS3Object(svc.s3Client, constants.Bucket, constants.Key)
+		existingInfo, err := s3service.GetS3Object(svc.S3Client, constants.Bucket, constants.Key)
 		if err != nil {
 			return "", err
 		}
-		var urlDetails []UrlInfo
+		var urlDetails []models.UrlInfo
 		if err := json.Unmarshal(existingInfo, &urlDetails); err != nil {
 			log.Printf("%v", err)
 			return "", err
@@ -69,7 +71,7 @@ func redirect(svc service, req events.APIGatewayV2HTTPRequest) (string, error) {
 }
 
 // function to check if url has already been shortened
-func isUrlExist(urlDetails []UrlInfo, shortUrl string) (string, bool) {
+func isUrlExist(urlDetails []models.UrlInfo, shortUrl string) (string, bool) {
 	for _, val := range urlDetails {
 		if val.ShortUrl == shortUrl {
 			return val.Url, true

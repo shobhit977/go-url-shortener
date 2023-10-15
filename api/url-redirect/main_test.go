@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-url-shortener/lib/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,7 +9,7 @@ import (
 
 func Test_IsURLExist(t *testing.T) {
 	type input struct {
-		urlDetails []UrlInfo
+		urlDetails []models.UrlInfo
 		shortUrl   string
 	}
 	tests := []struct {
@@ -20,7 +21,7 @@ func Test_IsURLExist(t *testing.T) {
 		{
 			name: "success case",
 			input: input{
-				urlDetails: []UrlInfo{{Url: "www.google.com", ShortUrl: "xyz", Domain: "google"}},
+				urlDetails: []models.UrlInfo{{Url: "www.google.com", ShortUrl: "xyz", Domain: "google"}},
 				shortUrl:   "xyz",
 			},
 			url:   "www.google.com",
@@ -29,7 +30,7 @@ func Test_IsURLExist(t *testing.T) {
 		{
 			name: "failure case - url does not exist",
 			input: input{
-				urlDetails: []UrlInfo{{Url: "www.google.com", ShortUrl: "xyz", Domain: "google"}},
+				urlDetails: []models.UrlInfo{{Url: "www.google.com", ShortUrl: "xyz", Domain: "google"}},
 				shortUrl:   "abc",
 			},
 			url:   "",

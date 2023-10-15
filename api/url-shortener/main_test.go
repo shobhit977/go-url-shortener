@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"go-url-shortener/lib/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -66,7 +67,7 @@ func Test_getDomain_FailureCases(t *testing.T) {
 }
 
 func Test_generateUrlFileOutput_getDomain_Failure(t *testing.T) {
-	testUrlData := []UrlInfo{}
+	testUrlData := []models.UrlInfo{}
 	invalidUrl := "https://www.percent-off.com/_20_%+off_60000_"
 	allUrlInfoBytes, urlInfo, err := generateUrlFileOutput(testUrlData, invalidUrl)
 	assert.Nil(t, allUrlInfoBytes)
@@ -76,11 +77,11 @@ func Test_generateUrlFileOutput_getDomain_Failure(t *testing.T) {
 }
 
 func Test_generateUrlFileOutput_Success_EmptyInitialData(t *testing.T) {
-	testUrlData := []UrlInfo{}
+	testUrlData := []models.UrlInfo{}
 	url := "https://www.google.com"
 	_, urlInfo, err := generateUrlFileOutput(testUrlData, url)
 	assert.Nil(t, err)
-	assert.Equal(t, urlInfo, UrlInfo{
+	assert.Equal(t, urlInfo, models.UrlInfo{
 		Url:      "https://www.google.com",
 		Domain:   "google",
 		ShortUrl: "7378mDnD7g",
@@ -88,7 +89,7 @@ func Test_generateUrlFileOutput_Success_EmptyInitialData(t *testing.T) {
 }
 
 func Test_generateUrlFileOutput_Success_ExistingUrlDataPresent(t *testing.T) {
-	testUrlData := []UrlInfo{{
+	testUrlData := []models.UrlInfo{{
 		Url:      "www.fb.com",
 		ShortUrl: "Vb1V-0nHFy",
 		Domain:   "fb",
@@ -96,15 +97,15 @@ func Test_generateUrlFileOutput_Success_ExistingUrlDataPresent(t *testing.T) {
 	url := "https://www.google.com"
 	allUrlInfoBytes, urlInfo, err := generateUrlFileOutput(testUrlData, url)
 	assert.Nil(t, err)
-	assert.Equal(t, urlInfo, UrlInfo{
+	assert.Equal(t, urlInfo, models.UrlInfo{
 		Url:      "https://www.google.com",
 		Domain:   "google",
 		ShortUrl: "7378mDnD7g",
 	},
 	)
-	var allUrlData []UrlInfo
+	var allUrlData []models.UrlInfo
 	json.Unmarshal(allUrlInfoBytes, &allUrlData)
-	assert.Equal(t, allUrlData, []UrlInfo{{
+	assert.Equal(t, allUrlData, []models.UrlInfo{{
 		Url:      "www.fb.com",
 		ShortUrl: "Vb1V-0nHFy",
 		Domain:   "fb",
